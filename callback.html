@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Authorization — Signal Lost Tales</title>
+<style>
+  :root { color-scheme: dark; }
+  body {
+    margin: 0; padding: 48px 16px;
+    background: #0b0b0d; color: #d9d9dd;
+    font: 16px/1.65 ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+  }
+  main { max-width: 620px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin: 0 0 1.5em; color: #fff; }
+  .box {
+    background: #141418; border: 1px solid #26262e;
+    border-radius: 8px; padding: 20px; margin: 1.2em 0;
+  }
+  .label { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em;
+           color: #8a8a92; margin-bottom: .6em; }
+  code {
+    display: block; word-break: break-all; font-size: .95rem;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    color: #e0a94a; line-height: 1.5;
+  }
+  button {
+    margin-top: 14px; padding: 9px 18px; font-size: .9rem; cursor: pointer;
+    background: #e0a94a; color: #121214; border: 0; border-radius: 6px;
+    font-weight: 600;
+  }
+  button:hover { background: #efbb5c; }
+  .err { color: #e06a5a; }
+  .hint { color: #6e6e76; font-size: .9rem; }
+  footer { margin-top: 3em; padding-top: 1.4em;
+           border-top: 1px solid #222228; color: #6e6e76; font-size: .9rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Authorization callback</h1>
+  <div id="out"></div>
+  <footer><a href="index.html" style="color:#e0a94a">← Signal Lost Tales</a></footer>
+</main>
+
+<script>
+(function () {
+  var q = new URLSearchParams(location.search);
+  var code = q.get('code');
+  var err = q.get('error') || q.get('error_description');
+  var state = q.get('state');
+  var out = document.getElementById('out');
+
+  if (err) {
+    out.innerHTML = '<div class="box"><div class="label err">Authorization failed</div>'
+      + '<code class="err"></code></div>';
+    out.querySelector('code').textContent = err;
+    return;
+  }
+
+  if (!code) {
+    out.innerHTML = '<p class="hint">No authorization code in this URL. '
+      + 'This page is the OAuth redirect target — open it through the '
+      + 'authorization flow, not directly.</p>';
+    return;
+  }
+
+  out.innerHTML =
+      '<div class="box"><div class="label">Authorization code</div>'
+    + '<code id="code"></code>'
+    + '<button id="copy">Copy code</button></div>'
+    + (state ? '<div class="box"><div class="label">State</div><code id="st"></code></div>' : '')
+    + '<p class="hint">Paste this code into the terminal when the script asks for it. '
+    + 'It is single-use and expires within minutes.</p>';
+
+  document.getElementById('code').textContent = code;
+  if (state) document.getElementById('st').textContent = state;
+
+  document.getElementById('copy').addEventListener('click', function () {
+    var btn = this;
+    navigator.clipboard.writeText(code).then(function () {
+      btn.textContent = 'Copied';
+      setTimeout(function () { btn.textContent = 'Copy code'; }, 1800);
+    }, function () {
+      btn.textContent = 'Copy failed — select manually';
+    });
+  });
+})();
+</script>
+</body>
+</html>
